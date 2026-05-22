@@ -38,9 +38,25 @@ npm run build       # type-check and compile to dist/
 | GET    | `/sources/:id`   | Fetch one source                         |
 | PUT    | `/sources/:id`   | Update a source (partial)                |
 | DELETE | `/sources/:id`   | Delete a source                          |
+| GET    | `/context`       | Assemble relevant context for a query    |
 
 A **source** has: `type` (`note` \| `doc` \| `snippet`), `title`, `content`, and `tags`
 (an array of strings). Request bodies are validated with zod; invalid input returns
 `400` with details.
 
-(The context-assembly endpoint arrives in Phase 3.)
+### Context assembly
+
+`GET /context?q=<query>&limit=<n>` is the endpoint the workflow engine calls. It scores
+every source against the query (title matches weighted highest, then tags, then content),
+drops non-matches, ranks the rest, and returns the top `limit` (default 5) as a bundle:
+
+```jsonc
+{
+  "query": "deploy",
+  "results": [{ "source": { /* ... */ }, "score": 6 }],
+  "text": "## Deployment runbook\nHow to deploy the service.",
+  "assembledAt": "2026-..."
+}
+```
+
+`text` is all selected sources stitched together, ready to drop into a prompt.
