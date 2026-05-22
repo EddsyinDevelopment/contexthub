@@ -7,8 +7,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w @contexthub/server",
-    "build": "npm run build -w @contexthub/server",
+    "dev:server": "npm run dev -w @contexthub/server",
+    "dev:web": "npm run dev -w @contexthub/web",
+    "build": "npm run build -w @contexthub/server && npm run build -w @contexthub/web",
     "start": "npm run start -w @contexthub/server",
     "test": "npm run test -w @contexthub/server"
   },
