@@ -10,8 +10,9 @@ This is an npm-workspaces monorepo:
 ```
 contexthub/
   packages/
-    server/   # backend API (Express + TypeScript)
-    web/      # frontend dashboard (React + Vite)
+    server/         # backend API (Express + TypeScript)
+    web/            # frontend dashboard (React + Vite)
+    engine-client/  # typed client + CLI standing in for the workflow engine
 ```
 
 The **server** owns the data and exposes the API. The **engine** (built by another
@@ -63,3 +64,20 @@ drops non-matches, ranks the rest, and returns the top `limit` (default 5) as a 
 ```
 
 `text` is all selected sources stitched together, ready to drop into a prompt.
+
+## The integration contract
+
+The engine consumes ContextHub through one endpoint, `GET /context`, and depends on
+the `ContextBundle` shape above. That shape is the **contract** between the two teams.
+
+- `packages/engine-client` models the contract independently and provides a typed
+  `ContextClient` plus a CLI that behaves like the engine.
+- `packages/server/src/context/contract.test.ts` boots the real server and asserts
+  the response matches the contract, so a breaking change fails CI rather than the engine.
+
+Try the engine client against a running server:
+
+```
+npm run dev:server                       # terminal 1
+npm run engine -- "deploy"                # terminal 2 — prints the assembled context
+```

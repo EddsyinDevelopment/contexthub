@@ -16,3 +16,15 @@ export interface CreateSourceInput {
   content: string;
   tags: string[];
 }
+
+export interface ContextResult {
+  source: Source;
+  score: number;
+}
+
+export interface ContextBundle {
+  query: string;
+  results: ContextResult[];
+  text: string;
+  assembledAt: string;
+}
