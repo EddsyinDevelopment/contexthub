@@ -9,9 +9,10 @@
   "scripts": {
     "dev:server": "npm run dev -w @contexthub/server",
     "dev:web": "npm run dev -w @contexthub/web",
-    "build": "npm run build -w @contexthub/server && npm run build -w @contexthub/web",
+    "engine": "npm run dev -w @contexthub/engine-client --",
+    "build": "npm run build -w @contexthub/server && npm run build -w @contexthub/web && npm run build -w @contexthub/engine-client",
     "start": "npm run start -w @contexthub/server",
-    "test": "npm run test -w @contexthub/server"
+    "test": "npm run test -w @contexthub/server && npm run test -w @contexthub/engine-client"
   },
   "license": "MIT",
   "author": "Eddy"

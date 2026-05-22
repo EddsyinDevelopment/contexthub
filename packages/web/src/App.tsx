@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { Source } from "./types";
 import { listSources, createSource, deleteSource } from "./api";
+import { ContextPreview } from "./ContextPreview";
 
 export function App() {
   const [sources, setSources] = useState<Source[]>([]);
@@ -99,6 +100,8 @@ export function App() {
           <button type="submit">Add source</button>
         </form>
       </section>
+
+      <ContextPreview />
 
       <section className="card">
         <h2>Sources ({sources.length})</h2>
