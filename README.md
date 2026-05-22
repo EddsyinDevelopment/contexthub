@@ -11,7 +11,7 @@ This is an npm-workspaces monorepo:
 contexthub/
   packages/
     server/   # backend API (Express + TypeScript)
-    web/      # frontend dashboard (added in Phase 4)
+    web/      # frontend dashboard (React + Vite)
 ```
 
 The **server** owns the data and exposes the API. The **engine** (built by another
@@ -23,10 +23,13 @@ dependency is the integration contract.
 
 ```
 npm install        # installs all workspace dependencies
-npm run dev         # start the server in watch mode
-npm test            # run the test suite
-npm run build       # type-check and compile to dist/
+npm run dev:server  # start the backend API (port 3000)
+npm run dev:web     # start the dashboard (port 5173, proxies API to 3000)
+npm test            # run the server test suite
+npm run build       # build server and web
 ```
+
+Run `dev:server` and `dev:web` in two terminals, then open http://localhost:5173.
 
 ## API
 
