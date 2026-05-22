@@ -1,20 +1,21 @@
 import express, { type Express } from "express";
+import type { DB } from "./db.js";
+import { createSourcesRouter } from "./sources/routes.js";
 
 /**
  * Build the Express application.
  *
- * Note we *create* the app here but do not call `listen`. Separating "build the app"
- * from "bind it to a port" is what makes the server testable: tests can construct a
- * fresh app and make requests against it without occupying a fixed port.
+ * The database is passed in (dependency injection) rather than created inside.
+ * That's what lets tests hand in an in-memory database while production hands in
+ * a file-backed one — same app code, different storage.
  */
-export function createApp(): Express {
+export function createApp(db: DB): Express {
   const app = express();
 
   // Parse JSON request bodies into req.body.
   app.use(express.json());
 
-  // Liveness check — the simplest possible endpoint. Used by CI, load balancers,
-  // and the engine to confirm the service is up.
+  // Liveness check — used by CI, load balancers, and the engine to confirm we're up.
   app.get("/health", (_req, res) => {
     res.json({
       status: "ok",
@@ -22,6 +23,9 @@ export function createApp(): Express {
       time: new Date().toISOString(),
     });
   });
+
+  // Sources CRUD lives under /sources.
+  app.use("/sources", createSourcesRouter(db));
 
   return app;
 }

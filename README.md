@@ -30,8 +30,17 @@ npm run build       # type-check and compile to dist/
 
 ## API
 
-| Method | Path        | Purpose                                  |
-| ------ | ----------- | ---------------------------------------- |
-| GET    | `/health`   | Liveness check                           |
+| Method | Path             | Purpose                                  |
+| ------ | ---------------- | ---------------------------------------- |
+| GET    | `/health`        | Liveness check                           |
+| GET    | `/sources`       | List all sources                         |
+| POST   | `/sources`       | Create a source                          |
+| GET    | `/sources/:id`   | Fetch one source                         |
+| PUT    | `/sources/:id`   | Update a source (partial)                |
+| DELETE | `/sources/:id`   | Delete a source                          |
 
-(More endpoints arrive in later phases.)
+A **source** has: `type` (`note` \| `doc` \| `snippet`), `title`, `content`, and `tags`
+(an array of strings). Request bodies are validated with zod; invalid input returns
+`400` with details.
+
+(The context-assembly endpoint arrives in Phase 3.)
