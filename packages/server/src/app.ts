@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import type { DB } from "./db.js";
 import { createSourcesRouter } from "./sources/routes.js";
+import { createContextRouter } from "./context/routes.js";
 
 /**
  * Build the Express application.
@@ -26,6 +27,9 @@ export function createApp(db: DB): Express {
 
   // Sources CRUD lives under /sources.
   app.use("/sources", createSourcesRouter(db));
+
+  // Context assembly — what the engine calls — lives under /context.
+  app.use("/context", createContextRouter(db));
 
   return app;
 }
