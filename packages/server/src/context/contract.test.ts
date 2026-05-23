@@ -25,6 +25,8 @@ test("/context response conforms to the engine contract", async () => {
         title: "Deploy guide",
         content: "deploy steps",
         tags: ["ops"],
+        addedByName: "Alice",
+        addedByEmail: "alice@example.com",
       }),
     });
 

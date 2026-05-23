@@ -32,7 +32,9 @@ function migrate(db: DB): void {
       content    TEXT NOT NULL,
       tags       TEXT NOT NULL DEFAULT '[]',
       created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      added_by_name TEXT NOT NULL,
+      added_by_email TEXT NOT NULL
     );
   `);
 }

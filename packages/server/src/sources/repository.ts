@@ -10,6 +10,8 @@ interface SourceRow {
   tags: string;
   created_at: string;
   updated_at: string;
+  added_by_name: string;
+  added_by_email: string;
 }
 
 /** Convert a database row into the API-facing Source object. */
@@ -22,6 +24,8 @@ function rowToSource(row: SourceRow): Source {
     tags: JSON.parse(row.tags) as string[],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    addedByName: row.added_by_name,
+    addedByEmail: row.added_by_email,
   };
 }
 
@@ -52,8 +56,8 @@ export class SourceRepository {
     const now = new Date().toISOString();
     const result = this.db
       .prepare(
-        `INSERT INTO sources (type, title, content, tags, created_at, updated_at)
-         VALUES (@type, @title, @content, @tags, @createdAt, @updatedAt)`,
+        `INSERT INTO sources (type, title, content, tags, created_at, updated_at, added_by_name, added_by_email)
+         VALUES (@type, @title, @content, @tags, @createdAt, @updatedAt, @addedByName, @addedByEmail)`,
       )
       .run({
         type: input.type,
@@ -62,6 +66,8 @@ export class SourceRepository {
         tags: JSON.stringify(input.tags),
         createdAt: now,
         updatedAt: now,
+        addedByName: input.addedByName,
+        addedByEmail: input.addedByEmail,
       });
     // lastInsertRowid is the auto-incremented id of the row we just inserted.
     return this.get(Number(result.lastInsertRowid))!;
@@ -77,12 +83,14 @@ export class SourceRepository {
       title: input.title ?? existing.title,
       content: input.content ?? existing.content,
       tags: input.tags ?? existing.tags,
+      addedByName: input.addedByName ?? existing.addedByName,
+      addedByEmail: input.addedByEmail ?? existing.addedByEmail,
     };
     const now = new Date().toISOString();
     this.db
       .prepare(
         `UPDATE sources
-         SET type = @type, title = @title, content = @content, tags = @tags, updated_at = @updatedAt
+         SET type = @type, title = @title, content = @content, tags = @tags, updated_at = @updatedAt, added_by_name = @addedByName, added_by_email = @addedByEmail
          WHERE id = @id`,
       )
       .run({
@@ -92,6 +100,8 @@ export class SourceRepository {
         content: merged.content,
         tags: JSON.stringify(merged.tags),
         updatedAt: now,
+        addedByName: merged.addedByName,
+        addedByEmail: merged.addedByEmail,
       });
     return this.get(id);
   }

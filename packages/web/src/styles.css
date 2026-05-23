@@ -151,6 +151,12 @@ button:hover {
   color: var(--text);
 }
 
+.meta {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

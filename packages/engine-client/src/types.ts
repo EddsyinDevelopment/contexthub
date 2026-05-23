@@ -13,6 +13,8 @@ export interface ContextSource {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  addedByName: string;
+  addedByEmail: string;
 }
 
 export interface ContextResult {

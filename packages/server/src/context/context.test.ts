@@ -24,7 +24,7 @@ async function seed(base: string, body: Record<string, unknown>) {
   await fetch(`${base}/sources`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ addedByName: "Alice", addedByEmail: "alice@example.com", ...body }),
   });
 }
 

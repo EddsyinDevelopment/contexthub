@@ -13,6 +13,8 @@ export function App() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState("");
+  const [addedByName, setAddedByName] = useState("");
+  const [addedByEmail, setAddedByEmail] = useState("");
 
   async function refresh() {
     try {
@@ -42,10 +44,14 @@ export function App() {
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
+        addedByName,
+        addedByEmail,
       });
       setTitle("");
       setContent("");
       setTags("");
+      setAddedByName("");
+      setAddedByEmail("");
       await refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -97,6 +103,19 @@ export function App() {
               placeholder="onboarding, setup"
             />
           </label>
+          <label>
+            Added by (name)
+            <input value={addedByName} onChange={(e) => setAddedByName(e.target.value)} required />
+          </label>
+          <label>
+            Added by (email)
+            <input
+              type="email"
+              value={addedByEmail}
+              onChange={(e) => setAddedByEmail(e.target.value)}
+              required
+            />
+          </label>
           <button type="submit">Add source</button>
         </form>
       </section>
@@ -128,6 +147,10 @@ export function App() {
                       ))}
                     </div>
                   )}
+                  <p className="meta">
+                    Added by {s.addedByName} ({s.addedByEmail}) ·{" "}
+                    {new Date(s.createdAt).toLocaleString()}
+                  </p>
                 </div>
                 <button className="delete" onClick={() => handleDelete(s.id)}>
                   Delete

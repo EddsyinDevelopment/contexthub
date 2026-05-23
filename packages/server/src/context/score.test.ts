@@ -12,6 +12,8 @@ function makeSource(partial: Partial<Source>): Source {
     tags: [],
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
+    addedByName: "Tester",
+    addedByEmail: "tester@example.com",
     ...partial,
   };
 }
