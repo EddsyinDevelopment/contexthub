@@ -8,6 +8,8 @@ export interface Source {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  addedByName: string;
+  addedByEmail: string;
 }
 
 export interface CreateSourceInput {
@@ -15,6 +17,8 @@ export interface CreateSourceInput {
   title: string;
   content: string;
   tags: string[];
+  addedByName: string;
+  addedByEmail: string;
 }
 
 export interface ContextResult {

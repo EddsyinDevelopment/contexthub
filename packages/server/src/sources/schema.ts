@@ -9,6 +9,8 @@ export const createSourceSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().min(1),
   tags: z.array(z.string()).default([]),
+  addedByName: z.string().min(1),
+  addedByEmail: z.email(),
 });
 
 /** Updating allows any subset of the create fields (PATCH-like semantics on PUT). */
@@ -26,4 +28,6 @@ export interface Source {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  addedByName: string;
+  addedByEmail: string;
 }

@@ -29,6 +29,8 @@ test("POST /sources creates a source and returns it with an id", async () => {
         title: "Onboarding doc",
         content: "How to set up the dev environment.",
         tags: ["onboarding", "setup"],
+        addedByName: "Alice",
+        addedByEmail: "alice@example.com"
       }),
     });
 
@@ -48,12 +50,12 @@ test("GET /sources lists created sources", async () => {
     await fetch(`${base}/sources`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "note", title: "First", content: "one" }),
+      body: JSON.stringify({ type: "note", title: "First", content: "one", addedByName: "Alice", addedByEmail: "alice@example.com" }),
     });
     await fetch(`${base}/sources`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "doc", title: "Second", content: "two" }),
+      body: JSON.stringify({ type: "doc", title: "Second", content: "two", addedByName: "Bob", addedByEmail: "bob@example.com" }),
     });
 
     const res = await fetch(`${base}/sources`);
@@ -72,7 +74,7 @@ test("GET /sources/:id returns one source, 404 when missing", async () => {
       await fetch(`${base}/sources`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: "note", title: "Find me", content: "here" }),
+        body: JSON.stringify({ type: "note", title: "Find me", content: "here", addedByName: "Alice", addedByEmail: "alice@example.com" }),
       })
     ).json() as { id: number };
 
@@ -93,7 +95,7 @@ test("PUT /sources/:id updates fields", async () => {
       await fetch(`${base}/sources`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: "note", title: "Old title", content: "body" }),
+        body: JSON.stringify({ type: "note", title: "Old title", content: "body", addedByName: "Alice", addedByEmail: "alice@example.com" }),
       })
     ).json() as { id: number };
 
@@ -119,7 +121,7 @@ test("DELETE /sources/:id removes the source", async () => {
       await fetch(`${base}/sources`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: "note", title: "Temp", content: "delete me" }),
+        body: JSON.stringify({ type: "note", title: "Temp", content: "delete me", addedByName: "Alice", addedByEmail: "alice@example.com" }),
       })
     ).json() as { id: number };
 
@@ -140,12 +142,33 @@ test("POST /sources rejects invalid bodies with 400", async () => {
     const res = await fetch(`${base}/sources`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "invalid-type", title: "" }),
+      body: JSON.stringify({ type: "invalid-type", title: "", content: "", addedByName: "", addedByEmail: "" }),
     });
 
     assert.equal(res.status, 400);
     const body = (await res.json()) as { error: string };
     assert.equal(body.error, "invalid body");
+    
+  } finally {
+    close();
+  }
+});
+
+test("POST /sources rejects an invalid email with 400", async () => {
+  const { base, close } = startServer();
+  try {
+    const res = await fetch(`${base}/sources`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type: "note",
+        title: "Bad email",
+        content: "x",
+        addedByName: "Alice",
+        addedByEmail: "not-an-email",
+      }),
+    });
+    assert.equal(res.status, 400);
   } finally {
     close();
   }
