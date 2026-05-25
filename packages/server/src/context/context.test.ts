@@ -66,13 +66,44 @@ test("GET /context respects the limit parameter", async () => {
   }
 });
 
-test("GET /context requires a non-empty q", async () => {
+test("GET /context returns all sources unranked when q is omitted (browse mode)", async () => {
   const { base, close } = startServer();
   try {
+    await seed(base, { type: "note", title: "alpha", content: "first" });
+    await seed(base, { type: "note", title: "beta", content: "second" });
+
     const res = await fetch(`${base}/context`);
+    assert.equal(res.status, 200);
+    const bundle = (await res.json()) as ContextBundle;
+    assert.equal(bundle.query, "");
+    assert.equal(bundle.results.length, 2);
+    // Browse mode: all scores are zero.
+    assert.ok(bundle.results.every((r) => r.score === 0));
+  } finally {
+    close();
+  }
+});
+
+test("GET /context filters by date range", async () => {
+  const { base, close } = startServer();
+  try {
+    await seed(base, { type: "note", title: "old note", content: "from the past" });
+
+    // Fetch with a date range that won't include the seeded source (far future).
+    const res = await fetch(`${base}/context?dateFrom=2099-01-01&dateTo=2099-01-02`);
+    assert.equal(res.status, 200);
+    const bundle = (await res.json()) as ContextBundle;
+    assert.equal(bundle.results.length, 0);
+  } finally {
+    close();
+  }
+});
+
+test("GET /context rejects an invalid date format", async () => {
+  const { base, close } = startServer();
+  try {
+    const res = await fetch(`${base}/context?dateFrom=not-a-date`);
     assert.equal(res.status, 400);
-    const body = (await res.json()) as { error: string };
-    assert.equal(body.error, "invalid query");
   } finally {
     close();
   }
