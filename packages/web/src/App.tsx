@@ -28,7 +28,6 @@ export function App() {
     }
   }
 
-  // Load sources once when the component first mounts.
   useEffect(() => {
     void refresh();
   }, []);

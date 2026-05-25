@@ -1,5 +1,5 @@
 import type { DB } from "../db.js";
-import type { Source, CreateSourceInput, UpdateSourceInput } from "./schema.js";
+import type { Source, CreateSourceInput, UpdateSourceInput, ListFilters } from "./schema.js";
 
 /** The raw row shape as stored in SQLite (snake_case columns, tags as a JSON string). */
 interface SourceRow {
@@ -38,10 +38,23 @@ function rowToSource(row: SourceRow): Source {
 export class SourceRepository {
   constructor(private readonly db: DB) {}
 
-  list(): Source[] {
+  list(filters: ListFilters = {}): Source[] {
+    const conditions: string[] = [];
+    const params: Record<string, string> = {};
+
+    if (filters.dateFrom) {
+      conditions.push("created_at >= @dateFrom");
+      params.dateFrom = `${filters.dateFrom}T00:00:00.000Z`;
+    }
+    if (filters.dateTo) {
+      conditions.push("created_at <= @dateTo");
+      params.dateTo = `${filters.dateTo}T23:59:59.999Z`;
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const rows = this.db
-      .prepare("SELECT * FROM sources ORDER BY id DESC")
-      .all() as SourceRow[];
+      .prepare(`SELECT * FROM sources ${where} ORDER BY id DESC`)
+      .all(params) as SourceRow[];
     return rows.map(rowToSource);
   }
 
