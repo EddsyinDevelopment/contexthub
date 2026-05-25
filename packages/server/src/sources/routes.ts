@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { DB } from "../db.js";
 import { SourceRepository } from "./repository.js";
-import { createSourceSchema, updateSourceSchema } from "./schema.js";
+import { createSourceSchema, updateSourceSchema, listFiltersSchema } from "./schema.js";
 
 /**
  * Build the /sources router. Takes the database so the repository can be wired up;
@@ -11,9 +11,14 @@ export function createSourcesRouter(db: DB): Router {
   const router = Router();
   const repo = new SourceRepository(db);
 
-  // List all sources.
-  router.get("/", (_req, res) => {
-    res.json(repo.list());
+  // List all sources, optionally filtered by dateFrom/dateTo (YYYY-MM-DD).
+  router.get("/", (req, res) => {
+    const parsed = listFiltersSchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: "invalid query", details: parsed.error.flatten() });
+      return;
+    }
+    res.json(repo.list(parsed.data));
   });
 
   // Fetch a single source by id.

@@ -19,6 +19,13 @@ export const updateSourceSchema = createSourceSchema.partial();
 export type CreateSourceInput = z.infer<typeof createSourceSchema>;
 export type UpdateSourceInput = z.infer<typeof updateSourceSchema>;
 
+/** Query params for filtering the sources list. Dates are YYYY-MM-DD strings. */
+export const listFiltersSchema = z.object({
+  dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+export type ListFilters = z.infer<typeof listFiltersSchema>;
+
 /** The shape we return to clients. `tags` is a real array here (stored as JSON text in SQLite). */
 export interface Source {
   id: number;
