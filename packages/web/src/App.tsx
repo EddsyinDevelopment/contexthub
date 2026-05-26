@@ -1,14 +1,32 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { Source } from "./types";
-import { listSources, createSource, deleteSource } from "./api";
-import { ContextPreview } from "./ContextPreview";
+import { listSources, createSource, deleteSource, fetchContext } from "./api";
+
+interface SearchFilters {
+  query: string;
+  addedBy: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
+const emptyFilters: SearchFilters = { query: "", addedBy: "", dateFrom: "", dateTo: "" };
 
 export function App() {
   const [sources, setSources] = useState<Source[]>([]);
+  const [scores, setScores] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Controlled form fields.
+  // Search inputs (live, before submit)
+  const [inputQuery, setInputQuery] = useState("");
+  const [inputAddedBy, setInputAddedBy] = useState("");
+  const [inputDateFrom, setInputDateFrom] = useState("");
+  const [inputDateTo, setInputDateTo] = useState("");
+
+  // Active filters (committed on submit)
+  const [activeFilters, setActiveFilters] = useState<SearchFilters>(emptyFilters);
+
+  // Add-source form fields
   const [type, setType] = useState("note");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -16,11 +34,24 @@ export function App() {
   const [addedByName, setAddedByName] = useState("");
   const [addedByEmail, setAddedByEmail] = useState("");
 
-  async function refresh() {
+  async function loadSources(filters: SearchFilters = activeFilters) {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setSources(await listSources());
-      setError(null);
+      const f = {
+        addedBy: filters.addedBy || undefined,
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+      };
+      if (filters.query) {
+        const bundle = await fetchContext(filters.query, f, 50);
+        setSources(bundle.results.map((r) => r.source));
+        setScores(new Map(bundle.results.map((r) => [r.source.id, r.score])));
+      } else {
+        const list = await listSources(f);
+        setSources(list);
+        setScores(new Map());
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -29,7 +60,7 @@ export function App() {
   }
 
   useEffect(() => {
-    void refresh();
+    void loadSources(emptyFilters);
   }, []);
 
   async function handleSubmit(event: FormEvent) {
@@ -39,19 +70,12 @@ export function App() {
         type,
         title,
         content,
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
+        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         addedByName,
         addedByEmail,
       });
-      setTitle("");
-      setContent("");
-      setTags("");
-      setAddedByName("");
-      setAddedByEmail("");
-      await refresh();
+      setTitle(""); setContent(""); setTags(""); setAddedByName(""); setAddedByEmail("");
+      await loadSources();
     } catch (err) {
       setError((err as Error).message);
     }
@@ -60,11 +84,31 @@ export function App() {
   async function handleDelete(id: number) {
     try {
       await deleteSource(id);
-      await refresh();
+      await loadSources();
     } catch (err) {
       setError((err as Error).message);
     }
   }
+
+  function handleSearch(event: FormEvent) {
+    event.preventDefault();
+    const newFilters: SearchFilters = {
+      query: inputQuery,
+      addedBy: inputAddedBy,
+      dateFrom: inputDateFrom,
+      dateTo: inputDateTo,
+    };
+    setActiveFilters(newFilters);
+    void loadSources(newFilters);
+  }
+
+  function handleClearSearch() {
+    setInputQuery(""); setInputAddedBy(""); setInputDateFrom(""); setInputDateTo("");
+    setActiveFilters(emptyFilters);
+    void loadSources(emptyFilters);
+  }
+
+  const hasActiveFilters = Object.values(activeFilters).some(Boolean);
 
   return (
     <main>
@@ -96,11 +140,7 @@ export function App() {
           </label>
           <label>
             Tags (comma-separated)
-            <input
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="onboarding, setup"
-            />
+            <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="onboarding, setup" />
           </label>
           <label>
             Added by (name)
@@ -108,31 +148,75 @@ export function App() {
           </label>
           <label>
             Added by (email)
-            <input
-              type="email"
-              value={addedByEmail}
-              onChange={(e) => setAddedByEmail(e.target.value)}
-              required
-            />
+            <input type="email" value={addedByEmail} onChange={(e) => setAddedByEmail(e.target.value)} required />
           </label>
           <button type="submit">Add source</button>
         </form>
       </section>
 
-      <ContextPreview />
-
       <section className="card">
         <h2>Sources ({sources.length})</h2>
+
+        <form onSubmit={handleSearch}>
+          <div className="preview-form">
+            <input
+              value={inputQuery}
+              onChange={(e) => setInputQuery(e.target.value)}
+              placeholder="Keyword search (optional)"
+            />
+            <input
+              value={inputAddedBy}
+              onChange={(e) => setInputAddedBy(e.target.value)}
+              placeholder="Added by name or email"
+            />
+            <button type="submit">Search</button>
+            {hasActiveFilters && (
+              <button type="button" className="clear-btn" onClick={handleClearSearch}>
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="date-filter">
+            <label>
+              From
+              <input type="date" value={inputDateFrom} onChange={(e) => setInputDateFrom(e.target.value)} />
+            </label>
+            <label>
+              To
+              <input type="date" value={inputDateTo} onChange={(e) => setInputDateTo(e.target.value)} />
+            </label>
+          </div>
+        </form>
+
+        {hasActiveFilters && (
+          <p className="muted">
+            {[
+              activeFilters.query && ("keyword: " + activeFilters.query),
+              activeFilters.addedBy && ("added by: " + activeFilters.addedBy),
+              (activeFilters.dateFrom || activeFilters.dateTo) &&
+                ("date: " + (activeFilters.dateFrom || "...") + " to " + (activeFilters.dateTo || "...")),
+            ]
+              .filter(Boolean)
+              .join(" | ")}
+          </p>
+        )}
+
         {loading ? (
-          <p className="muted">Loading…</p>
+          <p className="muted">Loading...</p>
         ) : sources.length === 0 ? (
-          <p className="muted">No sources yet. Add one above.</p>
+          <p className="muted">
+            {hasActiveFilters ? "No sources match your search." : "No sources yet. Add one above."}
+          </p>
         ) : (
           <ul className="source-list">
             {sources.map((s) => (
               <li key={s.id}>
                 <div className="source-body">
                   <div className="source-head">
+                    {(scores.get(s.id) ?? 0) > 0 && (
+                      <span className="score">{scores.get(s.id)}</span>
+                    )}
                     <span className="badge">{s.type}</span>
                     <strong>{s.title}</strong>
                   </div>
@@ -140,14 +224,12 @@ export function App() {
                   {s.tags.length > 0 && (
                     <div className="tags">
                       {s.tags.map((t) => (
-                        <span key={t} className="tag">
-                          {t}
-                        </span>
+                        <span key={t} className="tag">{t}</span>
                       ))}
                     </div>
                   )}
                   <p className="meta">
-                    Added by {s.addedByName} ({s.addedByEmail}) ·{" "}
+                    Added by {s.addedByName} ({s.addedByEmail}) &middot;{" "}
                     {new Date(s.createdAt).toLocaleString()}
                   </p>
                 </div>

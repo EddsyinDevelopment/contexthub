@@ -28,9 +28,9 @@ export function createContextRouter(db: DB): Router {
       res.status(400).json({ error: "invalid query", details: parsed.error.flatten() });
       return;
     }
-    const { q, limit, dateFrom, dateTo } = parsed.data;
+    const { q, limit, dateFrom, dateTo, addedBy } = parsed.data;
 
-    const sources = repo.list({ dateFrom, dateTo });
+    const sources = repo.list({ dateFrom, dateTo, addedBy });
 
     let bundle: ContextBundle;
     if (q) {
