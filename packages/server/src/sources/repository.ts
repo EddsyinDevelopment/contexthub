@@ -50,10 +50,15 @@ export class SourceRepository {
       conditions.push("created_at <= @dateTo");
       params.dateTo = `${filters.dateTo}T23:59:59.999Z`;
     }
+    if (filters.addedBy) {
+      conditions.push("(added_by_name LIKE @addedBy OR added_by_email LIKE @addedBy)");
+      params.addedBy = `%${filters.addedBy}%`;
+    }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const sql = `SELECT * FROM sources ${where} ORDER BY id DESC`;
     const rows = this.db
-      .prepare(`SELECT * FROM sources ${where} ORDER BY id DESC`)
+      .prepare(sql)
       .all(params) as SourceRow[];
     return rows.map(rowToSource);
   }

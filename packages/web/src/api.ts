@@ -6,12 +6,14 @@ import type { Source, CreateSourceInput, ContextBundle } from "./types";
 export interface SourceFilters {
   dateFrom?: string;
   dateTo?: string;
+  addedBy?: string;
 }
 
 export async function listSources(filters: SourceFilters = {}): Promise<Source[]> {
   const params = new URLSearchParams();
   if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) params.set("dateTo", filters.dateTo);
+  if (filters.addedBy) params.set("addedBy", filters.addedBy);
   const qs = params.toString();
   const res = await fetch(qs ? `/sources?${qs}` : "/sources");
   if (!res.ok) throw new Error(`Failed to list sources (${res.status})`);
@@ -41,6 +43,7 @@ export async function fetchContext(
   const params = new URLSearchParams({ q: query, limit: String(limit) });
   if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) params.set("dateTo", filters.dateTo);
+  if (filters.addedBy) params.set("addedBy", filters.addedBy);
   const res = await fetch(`/context?${params.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch context (${res.status})`);
   return res.json() as Promise<ContextBundle>;

@@ -23,6 +23,7 @@ export type UpdateSourceInput = z.infer<typeof updateSourceSchema>;
 export const listFiltersSchema = z.object({
   dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  addedBy: z.string().optional(),
 });
 export type ListFilters = z.infer<typeof listFiltersSchema>;
 

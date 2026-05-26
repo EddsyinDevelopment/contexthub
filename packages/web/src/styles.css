@@ -185,12 +185,19 @@ button:hover {
 }
 
 .preview-form {
+  display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 0.5rem;
 }
 
 .preview-form input {
   flex: 1;
+}
+
+.preview-form button {
+  flex-shrink: 0;
+  align-self: auto;
 }
 
 .preview-results h3 {

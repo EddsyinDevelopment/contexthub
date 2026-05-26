@@ -6,17 +6,19 @@ export function ContextPreview() {
   const [query, setQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [addedBy, setAddedBy] = useState("");
   const [bundle, setBundle] = useState<ContextBundle | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const runPreview = useCallback(async (q: string, df: string, dt: string) => {
+  const runPreview = useCallback(async (q: string, df: string, dt: string, ab: string) => {
     setLoading(true);
     try {
       setBundle(
         await fetchContext(q, {
           dateFrom: df || undefined,
           dateTo: dt || undefined,
+          addedBy: ab || undefined,
         }),
       );
       setError(null);
@@ -29,13 +31,13 @@ export function ContextPreview() {
 
   // Auto-trigger when dates change so picking a date immediately filters results.
   useEffect(() => {
-    if (dateFrom || dateTo) void runPreview(query, dateFrom, dateTo);
+    if (dateFrom || dateTo) void runPreview(query, dateFrom, dateTo, addedBy);
   }, [dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handlePreview(event: FormEvent) {
     event.preventDefault();
-    if (!query && !dateFrom && !dateTo) return;
-    await runPreview(query, dateFrom, dateTo);
+    if (!query && !dateFrom && !dateTo && !addedBy) return;
+    await runPreview(query, dateFrom, dateTo, addedBy);
   }
 
   function handleClearDates() {
@@ -43,7 +45,7 @@ export function ContextPreview() {
     setDateTo("");
   }
 
-  const hasFilters = query || dateFrom || dateTo;
+  const hasFilters = query || dateFrom || dateTo || addedBy;
 
   return (
     <section className="card">
@@ -56,6 +58,11 @@ export function ContextPreview() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="e.g. deploy (optional)"
+          />
+          <input
+            value={addedBy}
+            onChange={(e) => setAddedBy(e.target.value)}
+            placeholder="Added by name or email"
           />
           <button type="submit" disabled={!hasFilters}>
             Preview
